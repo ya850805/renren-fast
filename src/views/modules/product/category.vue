@@ -7,6 +7,8 @@
       show-checkbox
       node-key="catId"
       :default-expanded-keys="expandedKey"
+      draggable
+      :allow-drop="allowDrop"
     >
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
@@ -34,7 +36,12 @@
       </span>
     </el-tree>
 
-    <el-dialog :title="title" :visible.sync="dialogVisible" width="30%" :close-on-click-modal="false">
+    <el-dialog
+      :title="title"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :close-on-click-modal="false"
+    >
       <el-form :model="category">
         <el-form-item label="分類名稱">
           <el-input v-model="category.name" autocomplete="off"></el-input>
@@ -77,6 +84,7 @@ export default {
       },
       dialogType: "", //add, edit
       title: "",
+      maxLevel: 0,
       defaultProps: {
         children: "children",
         label: "name",
@@ -200,6 +208,34 @@ export default {
         this.getMenus();
         this.expandedKey = [this.category.parentCid];
       });
+    },
+    //是否能拖到指定位置
+    allowDrop(draggingNode, dropNode, type) {
+      //1.被拖曳的當前節點+所在的父節點總數不得大於3
+
+      //1) 被拖動的當前節點總層數
+      console.log("allowDrop：", draggingNode, dropNode, type);
+      this.countNodeLevel(draggingNode.data);
+      //被拖曳的當前節點+所在的父節點總數不得大於3即可
+
+      let deep = this.maxLevel - draggingNode.data.catLevel + 1;
+      console.log("深度：", deep);
+      if (type == "inner") {
+        return deep + dropNode.level <= 3;
+      } else {
+        return deep + dropNode.parent.level <= 3;
+      }
+    },
+    countNodeLevel(node) {
+      //找到所有子節點，求出最大深度
+      if (node.children != null && node.children.length > 0) {
+        for (let i = 0; i < node.children.length; i++) {
+          if (node.children[i].catLevel > this.maxLevel) {
+            this.maxLevel = node.children[i].catLevel;
+          }
+          this.countNodeLevel(node.children[i]);
+        }
+      }
     },
   },
   created() {
