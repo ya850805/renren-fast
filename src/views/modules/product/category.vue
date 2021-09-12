@@ -9,6 +9,7 @@
       :default-expanded-keys="expandedKey"
       draggable
       :allow-drop="allowDrop"
+      @node-drop="handleDrop"
     >
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
@@ -85,6 +86,7 @@ export default {
       dialogType: "", //add, edit
       title: "",
       maxLevel: 0,
+      updateNodes: [],
       defaultProps: {
         children: "children",
         label: "name",
@@ -234,6 +236,60 @@ export default {
             this.maxLevel = node.children[i].catLevel;
           }
           this.countNodeLevel(node.children[i]);
+        }
+      }
+    },
+    handleDrop(draggingNode, dropNode, dropType, ev) {
+      console.log("tree drop: ", draggingNode, dropNode, dropType);
+
+      //1. 當前節點最新的父節點ID
+      let pCid = 0;
+      let siblings = null;
+
+      if (dropType == "before" || dropType == "after") {
+        pCid =
+          dropNode.parent.data.catId == undefined
+            ? 0
+            : dropNode.parent.data.catId;
+        siblings = dropNode.parent.childNodes;
+      } else {
+        pCid = dropNode.data.catId;
+        siblings = dropNode.childNodes;
+      }
+
+      //2. 當前拖曳節點的順序
+      for (let i = 0; i < siblings.length; i++) {
+        //如果遍歷的是當前正在拖曳的節點，需要多修改一個parentId屬性
+        if (siblings[i].data.catId == draggingNode.data.catId) {
+          let catLevel = draggingNode.level;
+          //當前節點的層級發生變化
+          if (siblings[i].level != draggingNode.level) {
+            catLevel = siblings[i].level;
+            //修改子節點的層級
+            this.updateChildNodeLevel(siblings[i]);
+          }
+          this.updateNodes.push({
+            catId: siblings[i].data.catId,
+            sort: i,
+            parentId: pCid,
+            catLevel: catLevel,
+          });
+        } else {
+          this.updateNodes.push({ catId: siblings[i].data.catId, sort: i });
+        }
+      }
+
+      //3. 當前拖曳節點的層級
+    },
+    updateChildNodeLevel(node) {
+      if (node.childNodes.length > 0) {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          const currentNode = node.childNodes[i].data;
+          this.updateNodes.push({
+            catId: currentNode.catId,
+            catLevel: node.childNodes[i].level,
+          });
+          this.updateChildNodeLevel(node.childNodes[i]);
         }
       }
     },
