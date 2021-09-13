@@ -1,5 +1,12 @@
 <template>
   <div>
+    <el-switch
+      v-model="draggable"
+      active-text="開啟拖曳"
+      inactive-text="關閉拖曳"
+    >
+    </el-switch>
+    <el-button v-if="draggable" @click="batchSave">批量保存</el-button>
     <el-tree
       :data="menus"
       :props="defaultProps"
@@ -7,7 +14,7 @@
       show-checkbox
       node-key="catId"
       :default-expanded-keys="expandedKey"
-      draggable
+      :draggable="draggable"
       :allow-drop="allowDrop"
       @node-drop="handleDrop"
     >
@@ -70,6 +77,7 @@
 export default {
   data() {
     return {
+      pCid: [],
       menus: [],
       expandedKey: [],
       dialogVisible: false,
@@ -87,6 +95,7 @@ export default {
       title: "",
       maxLevel: 0,
       updateNodes: [],
+      draggable: false, //默認無法拖曳
       defaultProps: {
         children: "children",
         label: "name",
@@ -217,10 +226,9 @@ export default {
 
       //1) 被拖動的當前節點總層數
       console.log("allowDrop：", draggingNode, dropNode, type);
-      this.countNodeLevel(draggingNode.data);
+      this.countNodeLevel(draggingNode);
       //被拖曳的當前節點+所在的父節點總數不得大於3即可
-
-      let deep = this.maxLevel - draggingNode.data.catLevel + 1;
+      let deep = Math.abs(this.maxLevel - draggingNode.level + 1);
       console.log("深度：", deep);
       if (type == "inner") {
         return deep + dropNode.level <= 3;
@@ -230,12 +238,12 @@ export default {
     },
     countNodeLevel(node) {
       //找到所有子節點，求出最大深度
-      if (node.children != null && node.children.length > 0) {
-        for (let i = 0; i < node.children.length; i++) {
-          if (node.children[i].catLevel > this.maxLevel) {
-            this.maxLevel = node.children[i].catLevel;
+      if (node.childNodes != null && node.childNodes.length > 0) {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          if (node.childNodes[i].level > this.maxLevel) {
+            this.maxLevel = node.childNodes[i].level;
           }
-          this.countNodeLevel(node.children[i]);
+          this.countNodeLevel(node.childNodes[i]);
         }
       }
     },
@@ -256,6 +264,8 @@ export default {
         pCid = dropNode.data.catId;
         siblings = dropNode.childNodes;
       }
+      //修改全局pCid
+      this.pCid.push(pCid);
 
       //2. 當前拖曳節點的順序
       for (let i = 0; i < siblings.length; i++) {
@@ -279,24 +289,7 @@ export default {
         }
       }
 
-      //3. 當前拖曳節點的層級
-      this.$http({
-        url: this.$http.adornUrl("/product/category/update/sort"),
-        method: "post",
-        data: this.$http.adornData(this.updateNodes, false),
-      }).then(({ data }) => {
-        this.$message({
-          message: "菜單順序修改成功！",
-          type: "success",
-        });
-        //刷新菜單
-        this.getMenus();
-        //默認展開的菜單
-        this.expandedKey = [pCid];
-        //重製要更新的數據
-        this.updateNodes = [];
-        this.maxLevel = 0;
-      });
+      //3. 等到按按鈕才發請求到後端更新數據
     },
     updateChildNodeLevel(node) {
       if (node.childNodes.length > 0) {
@@ -309,6 +302,27 @@ export default {
           this.updateChildNodeLevel(node.childNodes[i]);
         }
       }
+    },
+    //真正發請求到後端調整菜單順序
+    batchSave() {
+      this.$http({
+        url: this.$http.adornUrl("/product/category/update/sort"),
+        method: "post",
+        data: this.$http.adornData(this.updateNodes, false),
+      }).then(({ data }) => {
+        this.$message({
+          message: "菜單順序修改成功！",
+          type: "success",
+        });
+        //刷新菜單
+        this.getMenus();
+        //默認展開的菜單
+        this.expandedKey = this.pCid;
+        //重製要更新的數據
+        this.updateNodes = [];
+        this.maxLevel = 0;
+        // this.pCid = 0;
+      });
     },
   },
   created() {
