@@ -293,6 +293,9 @@ export default {
         this.getMenus();
         //默認展開的菜單
         this.expandedKey = [pCid];
+        //重製要更新的數據
+        this.updateNodes = [];
+        this.maxLevel = 0;
       });
     },
     updateChildNodeLevel(node) {
