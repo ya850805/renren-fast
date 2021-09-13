@@ -280,6 +280,20 @@ export default {
       }
 
       //3. 當前拖曳節點的層級
+      this.$http({
+        url: this.$http.adornUrl("/product/category/update/sort"),
+        method: "post",
+        data: this.$http.adornData(this.updateNodes, false),
+      }).then(({ data }) => {
+        this.$message({
+          message: "菜單順序修改成功！",
+          type: "success",
+        });
+        //刷新菜單
+        this.getMenus();
+        //默認展開的菜單
+        this.expandedKey = [pCid];
+      });
     },
     updateChildNodeLevel(node) {
       if (node.childNodes.length > 0) {
