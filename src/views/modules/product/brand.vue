@@ -254,7 +254,7 @@ export default {
       //發送請求修改狀態
       let { brandId, showStatus } = data;
       this.$http({
-        url: this.$http.adornUrl("/product/brand/update"),
+        url: this.$http.adornUrl("/product/brand/update/status"),
         method: "post",
         data: this.$http.adornData({ brandId, showStatus }, false),
       }).then(({ data }) => {
