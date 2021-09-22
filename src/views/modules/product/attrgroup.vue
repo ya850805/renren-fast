@@ -144,6 +144,7 @@ export default {
   components: { Category, AddOrUpdate },
   data() {
     return {
+      catId: 0,
       dataForm: {
         key: "",
       },
@@ -164,7 +165,7 @@ export default {
     getDataList() {
       this.dataListLoading = true;
       this.$http({
-        url: this.$http.adornUrl("/product/attrgroup/list"),
+        url: this.$http.adornUrl(`/product/attrgroup/list/${this.catId}`),
         method: "get",
         params: this.$http.adornParams({
           page: this.pageIndex,
@@ -244,6 +245,11 @@ export default {
     treeNodeClick(data, node, component) {
         console.log("attrgroup感知categroy的節點被點擊：", data, node, component)
         console.log("剛才被點擊的菜單id：", data.catId);
+
+        if(node.level == 3) { //點選的是三級分類
+          this.catId = data.catId;
+          this.getDataList(); // 重新查詢
+        }
     }
   },
 };
