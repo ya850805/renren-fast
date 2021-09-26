@@ -6,8 +6,8 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('product:brand:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('product:brand:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        <el-button v-if="isAuth('product:spucomment:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
+        <el-button v-if="isAuth('product:spucomment:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
     </el-form>
     <el-table
@@ -23,46 +23,100 @@
         width="50">
       </el-table-column>
       <el-table-column
-        prop="brandId"
+        prop="id"
         header-align="center"
         align="center"
-        label="品牌id">
+        label="id">
       </el-table-column>
       <el-table-column
-        prop="name"
+        prop="skuId"
         header-align="center"
         align="center"
-        label="品牌名">
+        label="sku_id">
       </el-table-column>
       <el-table-column
-        prop="logo"
+        prop="spuId"
         header-align="center"
         align="center"
-        label="品牌logo地址">
+        label="spu_id">
       </el-table-column>
       <el-table-column
-        prop="descript"
+        prop="spuName"
         header-align="center"
         align="center"
-        label="介绍">
+        label="商品名字">
+      </el-table-column>
+      <el-table-column
+        prop="memberNickName"
+        header-align="center"
+        align="center"
+        label="会员昵称">
+      </el-table-column>
+      <el-table-column
+        prop="star"
+        header-align="center"
+        align="center"
+        label="星级">
+      </el-table-column>
+      <el-table-column
+        prop="memberIp"
+        header-align="center"
+        align="center"
+        label="会员ip">
+      </el-table-column>
+      <el-table-column
+        prop="createTime"
+        header-align="center"
+        align="center"
+        label="创建时间">
       </el-table-column>
       <el-table-column
         prop="showStatus"
         header-align="center"
         align="center"
-        label="显示状态[0-不显示；1-显示]">
+        label="显示状态[0-不显示，1-显示]">
       </el-table-column>
       <el-table-column
-        prop="firstLetter"
+        prop="spuAttributes"
         header-align="center"
         align="center"
-        label="检索首字母">
+        label="购买时属性组合">
       </el-table-column>
       <el-table-column
-        prop="sort"
+        prop="likesCount"
         header-align="center"
         align="center"
-        label="排序">
+        label="点赞数">
+      </el-table-column>
+      <el-table-column
+        prop="replyCount"
+        header-align="center"
+        align="center"
+        label="回复数">
+      </el-table-column>
+      <el-table-column
+        prop="resources"
+        header-align="center"
+        align="center"
+        label="评论图片/视频[json数据；[{type:文件类型,url:资源路径}]]">
+      </el-table-column>
+      <el-table-column
+        prop="content"
+        header-align="center"
+        align="center"
+        label="内容">
+      </el-table-column>
+      <el-table-column
+        prop="memberIcon"
+        header-align="center"
+        align="center"
+        label="用户头像">
+      </el-table-column>
+      <el-table-column
+        prop="commentType"
+        header-align="center"
+        align="center"
+        label="评论类型[0 - 对商品的直接评论，1 - 对评论的回复]">
       </el-table-column>
       <el-table-column
         fixed="right"
@@ -71,8 +125,8 @@
         width="150"
         label="操作">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.brandId)">修改</el-button>
-          <el-button type="text" size="small" @click="deleteHandle(scope.row.brandId)">删除</el-button>
+          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.id)">修改</el-button>
+          <el-button type="text" size="small" @click="deleteHandle(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -91,7 +145,7 @@
 </template>
 
 <script>
-  import AddOrUpdate from './brand-add-or-update'
+  import AddOrUpdate from './spucomment-add-or-update'
   export default {
     data () {
       return {
@@ -118,7 +172,7 @@
       getDataList () {
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('/product/brand/list'),
+          url: this.$http.adornUrl('/product/spucomment/list'),
           method: 'get',
           params: this.$http.adornParams({
             'page': this.pageIndex,
@@ -161,7 +215,7 @@
       // 删除
       deleteHandle (id) {
         var ids = id ? [id] : this.dataListSelections.map(item => {
-          return item.brandId
+          return item.id
         })
         this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
           confirmButtonText: '确定',
@@ -169,7 +223,7 @@
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('/product/brand/delete'),
+            url: this.$http.adornUrl('/product/spucomment/delete'),
             method: 'post',
             data: this.$http.adornData(ids, false)
           }).then(({data}) => {

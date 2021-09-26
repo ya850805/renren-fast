@@ -6,8 +6,8 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('product:brand:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('product:brand:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        <el-button v-if="isAuth('product:attr:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
+        <el-button v-if="isAuth('product:attr:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
     </el-form>
     <el-table
@@ -23,46 +23,58 @@
         width="50">
       </el-table-column>
       <el-table-column
-        prop="brandId"
+        prop="attrId"
         header-align="center"
         align="center"
-        label="品牌id">
+        label="属性id">
       </el-table-column>
       <el-table-column
-        prop="name"
+        prop="attrName"
         header-align="center"
         align="center"
-        label="品牌名">
+        label="属性名">
       </el-table-column>
       <el-table-column
-        prop="logo"
+        prop="searchType"
         header-align="center"
         align="center"
-        label="品牌logo地址">
+        label="是否需要检索[0-不需要，1-需要]">
       </el-table-column>
       <el-table-column
-        prop="descript"
+        prop="icon"
         header-align="center"
         align="center"
-        label="介绍">
+        label="属性图标">
       </el-table-column>
       <el-table-column
-        prop="showStatus"
+        prop="valueSelect"
         header-align="center"
         align="center"
-        label="显示状态[0-不显示；1-显示]">
+        label="可选值列表[用逗号分隔]">
       </el-table-column>
       <el-table-column
-        prop="firstLetter"
+        prop="attrType"
         header-align="center"
         align="center"
-        label="检索首字母">
+        label="属性类型[0-销售属性，1-基本属性，2-既是销售属性又是基本属性]">
       </el-table-column>
       <el-table-column
-        prop="sort"
+        prop="enable"
         header-align="center"
         align="center"
-        label="排序">
+        label="启用状态[0 - 禁用，1 - 启用]">
+      </el-table-column>
+      <el-table-column
+        prop="catelogId"
+        header-align="center"
+        align="center"
+        label="所属分类">
+      </el-table-column>
+      <el-table-column
+        prop="showDesc"
+        header-align="center"
+        align="center"
+        label="快速展示【是否展示在介绍上；0-否 1-是】，在sku中仍然可以调整">
       </el-table-column>
       <el-table-column
         fixed="right"
@@ -71,8 +83,8 @@
         width="150"
         label="操作">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.brandId)">修改</el-button>
-          <el-button type="text" size="small" @click="deleteHandle(scope.row.brandId)">删除</el-button>
+          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.attrId)">修改</el-button>
+          <el-button type="text" size="small" @click="deleteHandle(scope.row.attrId)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -91,7 +103,7 @@
 </template>
 
 <script>
-  import AddOrUpdate from './brand-add-or-update'
+  import AddOrUpdate from './attr-add-or-update'
   export default {
     data () {
       return {
@@ -118,7 +130,7 @@
       getDataList () {
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('/product/brand/list'),
+          url: this.$http.adornUrl('/product/attr/list'),
           method: 'get',
           params: this.$http.adornParams({
             'page': this.pageIndex,
@@ -161,7 +173,7 @@
       // 删除
       deleteHandle (id) {
         var ids = id ? [id] : this.dataListSelections.map(item => {
-          return item.brandId
+          return item.attrId
         })
         this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
           confirmButtonText: '确定',
@@ -169,7 +181,7 @@
           type: 'warning'
         }).then(() => {
           this.$http({
-            url: this.$http.adornUrl('/product/brand/delete'),
+            url: this.$http.adornUrl('/product/attr/delete'),
             method: 'post',
             data: this.$http.adornData(ids, false)
           }).then(({data}) => {
